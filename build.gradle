@@ -1,0 +1,100 @@
+buildscript {
+  ext.kotlin_version = '1.2.21'
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+  }
+}
+
+plugins {
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '1.2.61'
+}
+
+apply plugin: 'kotlin'
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+  maven { url "http://dl.bintray.com/kotlin/ktor" }
+  maven { url "https://dl.bintray.com/kotlin/kotlinx" }
+}
+
+dependencies {
+  compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+  compile 'org.slf4j:slf4j-jdk14:1.7.25'
+  compile 'com.pi4j:pi4j-core:1.2-SNAPSHOT'
+  compile 'org.jsoup:jsoup:1.11.3'
+  //compile 'org.apache.httpcomponents:httpclient:4.5.6'
+  //compile 'javax.ws.rs:javax.ws.rs-api:2.1'
+
+  testCompile 'junit:junit:4.12'
+  testCompile 'org.hamcrest:hamcrest-core:1.3'
+  testCompile 'org.assertj:assertj-core:3.7.0'
+  // org.assertj.core.api.Assertions.*; assertThat
+  testCompile 'org.mockito:mockito-core:2.8.9'
+  testCompile 'org.glassfish.jersey.core:jersey-client:2.0.1'
+}
+
+task run (type:JavaExec) {
+  classpath = sourceSets.main.runtimeClasspath
+  main = 'Lamps3'
+  //jvmArgs "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7778"
+}
+
+jar { // java plugin
+  manifest {
+    attributes(
+      "Manifest-Version": "1.0",
+      "Main-Class": tasks.run.main,
+      "Class-Path": configurations.compile.files
+        .collect { "file:///" + it + " " + it.name }
+        .join(" ")
+    )
+  }
+
+  doLast {
+    copy {
+	  from configurations.compile.files
+	  into 'build/deps'
+	}
+  }
+}
+
+task deploy(dependsOn: 'jar') {
+  doLast {
+    "c:\\program_files\\putty\\pscp.exe -pw $System.env.PSCPPASS build/libs/*.jar pi@192.168.16.115:/home/pi/java"
+            .execute()
+            .inputStream.eachLine { println(it) }
+    //"c:\\program_files\\putty\\pscp.exe -pw $System.env.PSCPPASS *.wav pi@192.168.16.110:/home/pi/java"
+    //        .execute()
+    //        .inputStream.eachLine { println(it) }
+    "c:\\program_files\\espeak\\command_line\\espeak -s 250 deployed".execute()
+  }
+}
+
+task deployDeps {
+  doLast {
+    "c:\\program_files\\putty\\pscp.exe -pw $System.env.PSCPPASS build/deps/*.jar pi@192.168.16.115:/home/pi/java"
+            .execute()
+            .inputStream.eachLine { println(it) }
+    "c:\\program_files\\espeak\\command_line\\espeak -s 250 deployed".execute()
+  }
+}
+group 'jarekczek'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}

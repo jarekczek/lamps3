@@ -1,0 +1,8 @@
+piny wejściowe (przyciski) typu pull-up (mode up, zwierają do zera)
+pin 27 (fiz. 36) niebieski
+pin 28 (fiz. 38) biały
+pin 29 (fiz. 40) zielony
+piny wyjściowe (diody):
+pin 23 (fiz. 33) niebieska
+pin 24 (fiz. 35) biała
+pin 25 (fiz. 37) zielona
